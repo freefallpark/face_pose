@@ -8,6 +8,8 @@
 namespace re::face_pose {
 
 class Process {
+ public:
+  bool Init();
 
 };
 

@@ -34,3 +34,4 @@ add_subdirectory(process)
 target_link_libraries(FacePoseProcess PRIVATE common_flags)
 
 add_executable(face_pose main.cpp)
+target_link_libraries( face_pose  PRIVATE FacePoseProcess)

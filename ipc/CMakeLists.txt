@@ -23,7 +23,9 @@ find_package(fastdds REQUIRED)
 # Client Library
 set(POSE_CLIENT_SRCS client.cpp client.h ${AUTOGEN_SRCS})
 add_library(FacePoseClient ${POSE_CLIENT_SRCS})
+target_link_libraries(FacePoseClient PRIVATE fastcdr fastdds)
 
 # Server Library
 set(POSE_SERVER_SRCS server.cpp server.h ${AUTOGEN_SRCS})
 add_library(FacePoseServer ${POSE_SERVER_SRCS})
+target_link_libraries(FacePoseServer PRIVATE fastcdr fastdds)

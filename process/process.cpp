@@ -6,4 +6,7 @@
 
 namespace re::face_pose {
 
+bool Process::Init() {
+  return false;
+}
 }  // namespace re::face_pose
