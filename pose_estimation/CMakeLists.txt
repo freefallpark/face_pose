@@ -1,4 +1,4 @@
-message("### Camera CMakeLists.txt ###")
+message("### Face Pose CMakeLists.txt ###")
 
 # Import Luxonis Libraries
 find_package(depthai 2.25.1 REQUIRED)

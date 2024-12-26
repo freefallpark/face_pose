@@ -26,7 +26,11 @@ target_link_libraries(FacePose PRIVATE common_flags)
 
 # IPC
 add_subdirectory(ipc)
-target_link_libraries(FacePoseServer common_flags)
-target_link_libraries(FacePoseClient common_flags)
+target_link_libraries(FacePoseServer PRIVATE common_flags)
+target_link_libraries(FacePoseClient PRIVATE common_flags)
+
+# Process
+add_subdirectory(process)
+target_link_libraries(FacePoseProcess PRIVATE common_flags)
 
 add_executable(face_pose main.cpp)
