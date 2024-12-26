@@ -1,0 +1,5 @@
+module re {
+    module face_pose{
+        struct Pose{};
+    };
+};

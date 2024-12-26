@@ -1,6 +1,8 @@
 message("### Face Pose Estimation CMakeLists.txt ###")
+cmake_minimum_required(VERSION 3.20)
 project(face_pose_project)
 set(CMAKE_CXX_STANDARD 17)
+
 include_directories(${CMAKE_SOURCE_DIR})
 
 # Compiler Options
@@ -22,7 +24,9 @@ link_libraries(glog::glog)
 add_subdirectory(pose_estimation)
 target_link_libraries(FacePose PRIVATE common_flags)
 
+# IPC
 add_subdirectory(ipc)
-
+target_link_libraries(FacePoseServer common_flags)
+target_link_libraries(FacePoseClient common_flags)
 
 add_executable(face_pose main.cpp)

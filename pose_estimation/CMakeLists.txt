@@ -4,4 +4,4 @@ message("### Camera CMakeLists.txt ###")
 find_package(depthai 2.25.1 REQUIRED)
 
 add_library(FacePose pose_estimation.cpp)
-target_link_libraries(FacePose depthai::opencv)
+target_link_libraries(FacePose PRIVATE depthai::opencv)
