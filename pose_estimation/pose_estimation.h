@@ -5,9 +5,38 @@
 #ifndef FACE_POSE_POSE_ESTIMATION_POSE_ESTIMATION_H_
 #define FACE_POSE_POSE_ESTIMATION_POSE_ESTIMATION_H_
 
+#include <atomic>
+
+#include "depthai/depthai.hpp"
+
 namespace re {
 
 class PoseEstimation {
+ public:
+  PoseEstimation();
+  PoseEstimation(PoseEstimation&) = delete;
+  PoseEstimation& operator=(PoseEstimation&) = delete;
+  ~PoseEstimation();
+
+  bool Run();
+  void Stop();
+
+ private:
+  void Init();
+  void DisplayVideo();
+
+  // General
+  std::atomic<bool> stop_;
+  std::thread pose_thread_;
+
+  // Oak D S2 general connection
+  dai::Pipeline pipeline_;
+  std::shared_ptr<dai::Device> device_;
+
+  // Color Camera
+  std::shared_ptr<dai::node::ColorCamera> cam_rgb_;
+  std::shared_ptr<dai::node::XLinkOut>    xout_rgb_;
+  std::shared_ptr<dai::DataOutputQueue>   q_rgb_;
 
 };
 

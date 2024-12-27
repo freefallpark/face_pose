@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 
   // Start Server
   re::face_pose::Process process;
-  if(process.Init()){
+  if(!process.Run()){
     return 1;
   }
 
@@ -43,7 +43,10 @@ int main(int argc, char* argv[]){
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
+  process.Stop();
+
   LOG(INFO) << "Face pose estimation server shutting down";
+
 
   return 0;
 }

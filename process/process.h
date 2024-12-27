@@ -5,12 +5,17 @@
 #ifndef FACE_POSE_PROJECT_PROCESS_PROCESS_H_
 #define FACE_POSE_PROJECT_PROCESS_PROCESS_H_
 
+#include "pose_estimation/pose_estimation.h"
+
 namespace re::face_pose {
 
 class Process {
  public:
-  bool Init();
+  bool Run();
+  void Stop();
 
+ private:
+  PoseEstimation pose_estimation_;
 };
 
 }  // namespace re::face_pose
