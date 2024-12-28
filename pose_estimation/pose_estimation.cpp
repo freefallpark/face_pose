@@ -19,18 +19,30 @@ PoseEstimation::~PoseEstimation() {
 void PoseEstimation::Init(){
   // Create Camera and output nodes on pipeline
   cam_rgb_ = pipeline_.create<dai::node::ColorCamera>();
+  nn_ = pipeline_.create<dai::node::NeuralNetwork>();
+  det_ = pipeline_.create<dai::node::DetectionParser>();
   xout_rgb_ = pipeline_.create<dai::node::XLinkOut>();
+  xout_nn_ = pipeline_.create<dai::node::XLinkOut>();
 
   // Setup
   xout_rgb_->setStreamName("rgb");
-  cam_rgb_->setPreviewSize(640,480);
+  xout_nn_->setStreamName("nn");
+  cam_rgb_->setPreviewSize(640,);
   cam_rgb_->setBoardSocket(dai::CameraBoardSocket::CAM_A);
   cam_rgb_->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
   cam_rgb_->setInterleaved(false);
-  cam_rgb_->setColorOrder(dai::ColorCameraProperties::ColorOrder::RGB);
+  nn_->setNumInferenceThreads(2);
+  nn_->input.setBlocking(false);
+  dai::OpenVINO::Blob blob("/home/pkyle/reflective_encounters/face_pose/pose_estimation/face_detection_yunet_160x120.blob");
+  nn_->setBlob(blob);
+  det_->setBlob(blob);
+  det_->setNNFamily(DetectionNetworkType::MOBILENET);
+  det_->setConfidenceThreshold(0.5);
 
   // Linking
-  cam_rgb_->preview.link(xout_rgb_->input);
+  nn_->passthrough.link(xout_rgb_->input);
+  cam_rgb_->preview.link(nn_->input);
+//  cam_rgb_->preview.link(xout_rgb_->input);
 
   // Connect to device
   device_ = std::make_shared<dai::Device>(pipeline_, dai::UsbSpeed::SUPER);
@@ -47,11 +59,21 @@ void PoseEstimation::Init(){
 
   // Output Queue, used to get rgb frames
   q_rgb_ = device_->getOutputQueue("rgb", 4, false);
+  q_det_ = device_->getOutputQueue("nn", 4, false);
+
 }
 void PoseEstimation::DisplayVideo() {
   cv::namedWindow("rgb");
   while( ! stop_.load()){
     auto in_rgb = q_rgb_->get<dai::ImgFrame>();
+    auto in_det = q_det_->tryGet<dai::ImgDetections>();
+    std::vector<dai::ImgDetection> detections;
+    if(in_det != nullptr){
+      detections = in_det->detections;
+      std::cout << "\r Num detections found: " << detections.size() << std::flush;
+    }
+
+
     cv::imshow("rgb", in_rgb->getCvFrame());
     cv::waitKey(1);
   }

@@ -38,6 +38,11 @@ class PoseEstimation {
   std::shared_ptr<dai::node::XLinkOut>    xout_rgb_;
   std::shared_ptr<dai::DataOutputQueue>   q_rgb_;
 
+  // Neural Network
+  std::shared_ptr<dai::node::NeuralNetwork> nn_;
+  std::shared_ptr<dai::node::DetectionParser> det_;
+  std::shared_ptr<dai::node::XLinkOut> xout_nn_;
+  std::shared_ptr<dai::DataOutputQueue>   q_det_;
 };
 
 } // re
