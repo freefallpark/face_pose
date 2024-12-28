@@ -11,6 +11,7 @@
 
 namespace re {
 
+
 class PoseEstimation {
  public:
   PoseEstimation();
@@ -22,6 +23,19 @@ class PoseEstimation {
   void Stop();
 
  private:
+  class PriorBox{
+   public:
+    PriorBox();
+    cv::Mat Decode( const cv::Mat& loc, const cv::Mat& conf, const cv::Mat& iou, float conf_threshold, int topK);
+   private:
+    void BuildPriors();
+
+    cv::Size input_shape;
+    cv::Size output_shape;
+    std::vector<int> strides;
+    std::vector<std::vector<float>> min_sizes;
+    std::vector<cv::Vec4f> priors;
+  };
   void Init();
   void DisplayVideo();
 
