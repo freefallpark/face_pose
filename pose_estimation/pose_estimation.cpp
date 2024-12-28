@@ -22,27 +22,32 @@ PoseEstimation::~PoseEstimation() {
   }
 }
 void PoseEstimation::Init(){
-  // Create Color Camera Node:
-  cam_rgb_ = pipeline_.create<dai::node::ColorCamera>();
-  cam_rgb_->setPreviewSize(kRgbWidth,kRgbHeight);
-  cam_rgb_->setBoardSocket(dai::CameraBoardSocket::CAM_A);
-  cam_rgb_->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-  cam_rgb_->setInterleaved(false);
+  // Create Mono Camera Node:
+  cam_mono_ = pipeline_.create<dai::node::MonoCamera>();
+  cam_mono_->setBoardSocket(dai::CameraBoardSocket::CAM_B);
+  cam_mono_->setResolution(dai::MonoCameraProperties::SensorResolution::THE_720_P);
 
-  // Create Color Camera Output:
-  xout_rgb_ = pipeline_.create<dai::node::XLinkOut>();
-  xout_rgb_->setStreamName("rgb");
-  cam_rgb_->preview.link(xout_rgb_->input);
+  // Create Mono Image Manip Node:
+  manip_mono_ = pipeline_.create<dai::node::ImageManip>();
+  manip_mono_->initialConfig.setResize(kRgbWidth, kRgbHeight);
+  manip_mono_->setKeepAspectRatio(false);
 
+  // Link mon image to manip input
+  cam_mono_->out.link(manip_mono_->inputImage);
 
-  // Create Image Manip Node:
-  manip_ = pipeline_.create<dai::node::ImageManip>();
-  manip_->initialConfig.setResize(kNnWidth,kNnHeight);
-  manip_->initialConfig.setFrameType(dai::RawImgFrame::Type::BGR888p);
-  manip_->setKeepAspectRatio(false);
+  // Crate xlink out to send resized frames to host
+  xout_mono_ = pipeline_.create<dai::node::XLinkOut>();
+  xout_mono_->setStreamName("mono");
+  manip_mono_->out.link(xout_mono_->input);
+
+  // Create NN Image Manip Node:
+  manip_nn_ = pipeline_.create<dai::node::ImageManip>();
+  manip_nn_->initialConfig.setResize(kNnWidth, kNnHeight);
+  manip_nn_->initialConfig.setFrameType(dai::RawImgFrame::Type::BGR888p);
+  manip_nn_->setKeepAspectRatio(false);
 
   // Link Camera Output to ImageManip input
-  cam_rgb_->preview.link(manip_->inputImage);
+  cam_mono_->out.link(manip_nn_->inputImage);
 
   // Create Neural Network Node
   nn_ = pipeline_.create<dai::node::NeuralNetwork>();
@@ -52,7 +57,7 @@ void PoseEstimation::Init(){
   nn_->input.setBlocking(false);
 
   // Link manip outut to nn input
-  manip_->out.link(nn_->input);
+  manip_nn_->out.link(nn_->input);
 
   // Create XLinkOut to get NN detections on the host
   xout_nn_ = pipeline_.create<dai::node::XLinkOut>();
@@ -72,7 +77,7 @@ void PoseEstimation::Init(){
   LOG(INFO) << "Device Name: " << device_->getDeviceName() << " Product Name: " << device_->getProductName();
 
   // Output Queue, used to get rgb frames
-  q_rgb_ = device_->getOutputQueue("rgb", 4, false);
+  q_mono_ = device_->getOutputQueue("mono", 4, false);
   q_det_ = device_->getOutputQueue("nn", 4, false);
 
 }
@@ -80,7 +85,7 @@ void PoseEstimation::DisplayVideo() {
   cv::namedWindow("rgb");
   while( ! stop_.load()){
     // Wait for Camera Frame
-    auto in_rgb = q_rgb_->get<dai::ImgFrame>();
+    auto in_rgb = q_mono_->get<dai::ImgFrame>();
     auto frame = in_rgb->getCvFrame();
 
     // Try to get NN output

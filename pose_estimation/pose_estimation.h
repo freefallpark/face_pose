@@ -40,18 +40,18 @@ class PoseEstimation {
   std::shared_ptr<dai::Device> device_;
 
   // Color Camera
-  std::shared_ptr<dai::node::ColorCamera> cam_rgb_;
-  std::shared_ptr<dai::node::XLinkOut>    xout_rgb_;
-  std::shared_ptr<dai::DataOutputQueue>   q_rgb_;
+  std::shared_ptr<dai::node::MonoCamera>  cam_mono_;
+  std::shared_ptr<dai::node::XLinkOut>    xout_mono_;
+  std::shared_ptr<dai::DataOutputQueue>   q_mono_;
 
   // Image Manip (need to resize and reformat color camera image to NN's Expected size)
-  std::shared_ptr<dai::node::ImageManip> manip_;
-
+  std::shared_ptr<dai::node::ImageManip> manip_nn_;
+  std::shared_ptr<dai::node::ImageManip> manip_mono_;
 
   // Neural Network
   std::shared_ptr<dai::node::NeuralNetwork> nn_;
-  std::shared_ptr<dai::node::XLinkOut> xout_nn_;
-  std::shared_ptr<dai::DataOutputQueue>   q_det_;
+  std::shared_ptr<dai::node::XLinkOut>      xout_nn_;
+  std::shared_ptr<dai::DataOutputQueue>     q_det_;
 };
 
 } // re
