@@ -17,36 +17,45 @@ PoseEstimation::~PoseEstimation() {
   }
 }
 void PoseEstimation::Init(){
-  // Create Camera and output nodes on pipeline
+  // Create Color Camera Node:
   cam_rgb_ = pipeline_.create<dai::node::ColorCamera>();
-  nn_ = pipeline_.create<dai::node::NeuralNetwork>();
-  det_ = pipeline_.create<dai::node::DetectionParser>();
-  xout_rgb_ = pipeline_.create<dai::node::XLinkOut>();
-  xout_nn_ = pipeline_.create<dai::node::XLinkOut>();
-
-  // Setup
-  xout_rgb_->setStreamName("rgb");
-  xout_nn_->setStreamName("nn");
-  cam_rgb_->setPreviewSize(640,);
+  cam_rgb_->setPreviewSize(640,480);
   cam_rgb_->setBoardSocket(dai::CameraBoardSocket::CAM_A);
   cam_rgb_->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
   cam_rgb_->setInterleaved(false);
-  nn_->setNumInferenceThreads(2);
-  nn_->input.setBlocking(false);
+
+  // Create Color Camera Output:
+  xout_rgb_ = pipeline_.create<dai::node::XLinkOut>();
+  xout_rgb_->setStreamName("rgb");
+  cam_rgb_->preview.link(xout_rgb_->input);
+
+
+  // Create Image Manip Node:
+  manip_ = pipeline_.create<dai::node::ImageManip>();
+  manip_->initialConfig.setResize(160,120);
+  manip_->initialConfig.setFrameType(dai::RawImgFrame::Type::BGR888p);
+  manip_->setKeepAspectRatio(false);
+
+  // Link Camera Output to ImageManip input
+  cam_rgb_->preview.link(manip_->inputImage);
+
+  // Create Neural Network Node
+  nn_ = pipeline_.create<dai::node::NeuralNetwork>();
   dai::OpenVINO::Blob blob("/home/pkyle/reflective_encounters/face_pose/pose_estimation/face_detection_yunet_160x120.blob");
   nn_->setBlob(blob);
-  det_->setBlob(blob);
-  det_->setNNFamily(DetectionNetworkType::MOBILENET);
-  det_->setConfidenceThreshold(0.5);
+  nn_->setNumInferenceThreads(2);
+  nn_->input.setBlocking(false);
 
-  // Linking
-  nn_->passthrough.link(xout_rgb_->input);
-  cam_rgb_->preview.link(nn_->input);
-//  cam_rgb_->preview.link(xout_rgb_->input);
+  // Link manip outut to nn input
+  manip_->out.link(nn_->input);
+
+  // Create XLinkOut to get NN detections on the host
+  xout_nn_ = pipeline_.create<dai::node::XLinkOut>();
+  xout_nn_->setStreamName("nn");
+  nn_->out.link(xout_nn_->input);
 
   // Connect to device
   device_ = std::make_shared<dai::Device>(pipeline_, dai::UsbSpeed::SUPER);
-  LOG(INFO) << "Connected cameras: " << device_->getConnectedCameraFeatures();
   LOG(INFO) << "Usb Speed: " << device_->getUsbSpeed();
 
   // Bootloader Version
@@ -65,16 +74,29 @@ void PoseEstimation::Init(){
 void PoseEstimation::DisplayVideo() {
   cv::namedWindow("rgb");
   while( ! stop_.load()){
+    // Wait for Camera Frame
     auto in_rgb = q_rgb_->get<dai::ImgFrame>();
-    auto in_det = q_det_->tryGet<dai::ImgDetections>();
-    std::vector<dai::ImgDetection> detections;
+    auto frame = in_rgb->getCvFrame();
+
+    // Try to get NN output
+    auto in_det = q_det_->tryGet<dai::NNData>();
+
+    // Parse output
+    std::vector<float> conf, iou, loc;
+    cv::Mat conf_mat, iou_mat, loc_mat;
     if(in_det != nullptr){
-      detections = in_det->detections;
-      std::cout << "\r Num detections found: " << detections.size() << std::flush;
+      conf = in_det->getLayerFp16("conf");
+      iou = in_det->getLayerFp16("iou");
+      loc = in_det->getLayerFp16("loc");
+      conf_mat = cv::Mat(1076,2, CV_32F, conf.data());
+      iou_mat = cv::Mat(1076,2, CV_32F, iou.data());
+      loc_mat = cv::Mat(1076,2, CV_32F, loc.data());
+      auto max_element = std::max_element(conf.begin(), conf.end());
+      std::cout << "\r value of max conf value: " << *max_element << std::flush;
     }
 
 
-    cv::imshow("rgb", in_rgb->getCvFrame());
+    cv::imshow("rgb", frame);
     cv::waitKey(1);
   }
   cv::destroyAllWindows();
