@@ -1,6 +1,4 @@
-//
-// Created by pkyle on 1/19/25.
-//
+//TODO: give credit to Luxonis for PriorBox Class
 
 #ifndef FACE_POSE_PROJECT_POSE_ESTIMATION_PRIOR_BOX_H_
 #define FACE_POSE_PROJECT_POSE_ESTIMATION_PRIOR_BOX_H_

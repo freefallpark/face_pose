@@ -1,6 +1,7 @@
 //
 // Created by pkyle on 12/26/24.
 //
+//TODO Clean this shit up, and make sure you undestand everything
 
 #ifndef FACE_POSE_POSE_ESTIMATION_POSE_ESTIMATION_H_
 #define FACE_POSE_POSE_ESTIMATION_POSE_ESTIMATION_H_
