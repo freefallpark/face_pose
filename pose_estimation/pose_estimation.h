@@ -30,6 +30,18 @@ class PoseEstimation {
   };
   void Init();
   void DisplayVideo();
+  /**
+    * @brief Draw bounding boxes and landmarks on an image.
+    *
+    * The detections Mat should have shape (N x 15) with each row:
+    *   [x1, y1, x2, y2, lmk1_x, lmk1_y, lmk2_x, lmk2_y, lmk3_x, lmk3_y,
+    *    lmk4_x, lmk4_y, lmk5_x, lmk5_y, score]
+    *
+    * @param frame      The original image on which to draw.
+    * @param detections The (N x 15) Mat of detections.
+    * @return           A copy of the frame with bounding boxes and landmarks drawn.
+    */
+  void DrawFaces(cv::Mat& frame, const cv::Mat& detections);
 
   // General
   std::atomic<bool> stop_;
@@ -40,18 +52,18 @@ class PoseEstimation {
   std::shared_ptr<dai::Device> device_;
 
   // Color Camera
-  std::shared_ptr<dai::node::MonoCamera>  cam_mono_;
-  std::shared_ptr<dai::node::XLinkOut>    xout_mono_;
-  std::shared_ptr<dai::DataOutputQueue>   q_mono_;
+  std::shared_ptr<dai::node::ColorCamera>  cam_;
+  std::shared_ptr<dai::node::XLinkOut>    xout_;
+  std::shared_ptr<dai::DataOutputQueue>   q_cam_;
 
   // Image Manip (need to resize and reformat color camera image to NN's Expected size)
   std::shared_ptr<dai::node::ImageManip> manip_nn_;
-  std::shared_ptr<dai::node::ImageManip> manip_mono_;
+  std::shared_ptr<dai::node::ImageManip> manip_;
 
   // Neural Network
   std::shared_ptr<dai::node::NeuralNetwork> nn_;
   std::shared_ptr<dai::node::XLinkOut>      xout_nn_;
-  std::shared_ptr<dai::DataOutputQueue>     q_det_;
+  std::shared_ptr<dai::DataOutputQueue>     q_nn_;
 };
 
 } // re
