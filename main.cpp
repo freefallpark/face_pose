@@ -25,28 +25,9 @@ int main(int argc, char* argv[]){
   FLAGS_alsologtostderr = true;
   google::InitGoogleLogging(log_name.c_str());
 
-  // Setup Clean Exit
-  signal(SIGINT, IntHandler);     // Ctl+c
-  signal(SIGTERM, IntHandler);    // clion 'stop' button
-
-
-  // Start Server
+  // Create Instance of Face Pose Process
   re::face_pose::Process process;
-  if(!process.Start()){
-    return 1;
-  }
 
-  LOG(INFO) << "Face pose estimation server is running";
-
-  //Busy Loop
-  while(!stop){
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-  }
-
-  process.Stop();
-
-  LOG(INFO) << "Face pose estimation server shutting down";
-
-
-  return 0;
+  // Run Process
+  return process.Run();
 }

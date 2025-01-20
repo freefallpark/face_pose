@@ -22,6 +22,7 @@ link_libraries(glog::glog)
 
 # Camera
 add_subdirectory(camera)
+target_link_libraries(Camera PRIVATE common_flags)
 
 # Pose Estimation
 add_subdirectory(pose_estimation)
