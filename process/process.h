@@ -11,11 +11,14 @@ namespace re::face_pose {
 
 class Process {
  public:
-  bool Run();
+  Process() = default;
+  ~Process();
+  bool Start();
   void Stop();
 
  private:
   PoseEstimation pose_estimation_;
+  std::thread pose_thread_;
 };
 
 }  // namespace re::face_pose

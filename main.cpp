@@ -32,7 +32,7 @@ int main(int argc, char* argv[]){
 
   // Start Server
   re::face_pose::Process process;
-  if(!process.Run()){
+  if(!process.Start()){
     return 1;
   }
 

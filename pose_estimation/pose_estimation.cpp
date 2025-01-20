@@ -16,25 +16,61 @@ static constexpr int kRgbWidth = 640;
 static constexpr int kRgbHeight = 480;
 
 
-PoseEstimation::PoseEstimation() : stop_(false){}
+// Public
+PoseEstimation::PoseEstimation() : stop_(false),
+                                   camera_(std::make_unique<camera::LuxonisCamera>()){}
 PoseEstimation::~PoseEstimation() {
   Stop();
-  if(pose_thread_.joinable()){
-    pose_thread_.join();
+}
+bool PoseEstimation::Init(){
+  //Setup Camera
+  camera::CamSettings settings;
+  if( ! camera_->Connect(settings)){
+    LOG(ERROR) << "Failed to Connect to camera";
+    return false;
   }
-}
-void PoseEstimation::Init(){
-  camera_ = std::make_unique<re::camera::LuxonisCamera>();
 
-}
-void PoseEstimation::DisplayVideo() {
+  // Setup Neural Network
+
+  return true;
 }
 bool PoseEstimation::Run() {
+  // Main loop
+  while(!stop_){
+    // Get Frame
+    auto frame = camera_->GetFrame();
+    if(frame.empty()){
+      stop_ = true;
+      return false;
+    }
 
+    // Run Frame through NN
+    auto faces = LookForFaces(frame);
+
+    //Display frame
+    DisplayFrame("debug", frame);
+
+  }
+
+  // Shutdown
+  cv::destroyAllWindows();
   return true;
 }
 void PoseEstimation::Stop() {
   stop_.store(true);
+}
+
+// Private
+void PoseEstimation::DisplayFrame( const std::string &name, const cv::Mat &frame) {
+  cv::namedWindow(name);
+  cv::imshow(name,frame);
+  auto key = cv::waitKey(1);
+  if(key == 'q'){
+    stop_ = true;
+  }
+}
+std::vector<Face> PoseEstimation::LookForFaces(const cv::Mat &frame) {
+  return std::vector<Face>();
 }
 void PoseEstimation::DrawFaces(cv::Mat &frame, const cv::Mat &faces) {
 // --------------------------------------------------
@@ -201,4 +237,5 @@ void PoseEstimation::DrawFaces(cv::Mat &frame, const cv::Mat &faces) {
   }
 
 }
+
 } // re

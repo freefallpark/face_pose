@@ -8,15 +8,23 @@
 
 namespace re::face_pose {
 
-bool Process::Run() {
-  if(! pose_estimation_.Run()){
-    LOG(INFO) << "Failed during PoseEstimation::Run()";
+Process::~Process() {
+  if(pose_thread_.joinable()){
+    pose_thread_.join();
+  }
+}
+bool Process::Start() {
+  if(! pose_estimation_.Init()){
+    LOG(INFO) << "Failed to Initialize Face Pose Estimation";
     return false;
   }
+  pose_thread_ = std::thread(&PoseEstimation::Run, &pose_estimation_);
   return true;
 }
 void Process::Stop() {
+  // Shutdown pose
   pose_estimation_.Stop();
-
 }
+
+
 }  // namespace re::face_pose

@@ -3,10 +3,13 @@
 //
 
 #include "luxonis_camera.h"
+#include <glog/logging.h>
 
 namespace re {
 namespace camera {
+LuxonisCamera::LuxonisCamera() :device_(nullptr), cam_(nullptr), xout_(nullptr), q_cam_(nullptr){}
 bool LuxonisCamera::Connect(const CamSettings& settings){
+  std::lock_guard lock(mtx_);
   // Create Camera Node and set it up:
   cam_ = pipeline_.create<dai::node::ColorCamera>();
   cam_->setBoardSocket(dai::CameraBoardSocket::CAM_A);
@@ -50,7 +53,8 @@ bool LuxonisCamera::Connect(const CamSettings& settings){
   return true;
 }
 cv::Mat LuxonisCamera::GetFrame(){
-  return q_cam_->get<dai::ImgFrame>().getCvFrame();
+  std::lock_guard lock(mtx_);
+  return q_cam_ ? q_cam_->get<dai::ImgFrame>()->getCvFrame() : cv::Mat();
 }
 } // camera
 } // re

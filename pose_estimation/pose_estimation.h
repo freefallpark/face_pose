@@ -8,10 +8,18 @@
 
 #include <atomic>
 
+#include "opencv2/opencv.hpp"
+#include "opencv2/highgui.hpp"
+#include "camera/luxonis_camera.h"
 #include "depthai/depthai.hpp"
 
 namespace re {
 
+struct Face{
+  Face():x(0),y(0),z(0),confidence(0){}
+  float x,y,z;
+  double confidence;
+};
 
 class PoseEstimation {
  public:
@@ -20,12 +28,15 @@ class PoseEstimation {
   PoseEstimation& operator=(PoseEstimation&) = delete;
   ~PoseEstimation();
 
+  bool Init();
   bool Run();
   void Stop();
 
  private:
-  void Init();
-  void DisplayVideo();
+  void DisplayFrame( const std::string &name, const cv::Mat &frame);
+
+  std::vector<Face> LookForFaces(const cv::Mat &frame);
+
   /**
     * @brief Draw bounding boxes and landmarks on an image.
     *
@@ -41,10 +52,11 @@ class PoseEstimation {
 
   // General
   std::atomic<bool> stop_;
-  std::thread pose_thread_;
 
   // Camera
   std::unique_ptr<re::camera::BaseCamera> camera_;
+
+  // Neural Network
 
 };
 

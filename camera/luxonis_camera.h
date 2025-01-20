@@ -14,6 +14,7 @@ namespace camera {
 
 class LuxonisCamera final : public BaseCamera{
  public:
+  LuxonisCamera();
   /**
    * @brief Connects to camera, returns true upon success
    */
@@ -25,6 +26,7 @@ class LuxonisCamera final : public BaseCamera{
   cv::Mat GetFrame() override;
 
  private:
+  std::mutex mtx_;
   // Oak D S2 general connection
   dai::Pipeline pipeline_;
   std::shared_ptr<dai::Device> device_;

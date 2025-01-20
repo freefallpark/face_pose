@@ -18,7 +18,7 @@ struct CamSettings{
 class BaseCamera {
  public:
   BaseCamera()  = default;
-  ~BaseCamera() = default;
+  virtual ~BaseCamera() = default;
   /**
    * @brief Connects to camera, returns true upon success
    */
