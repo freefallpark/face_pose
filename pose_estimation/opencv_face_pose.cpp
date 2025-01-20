@@ -4,6 +4,8 @@
 
 #include "opencv_face_pose.h"
 
+#include <utility>
+
 #include "opencv2/highgui.hpp"
 #include "prior_box.h"
 
@@ -13,6 +15,7 @@ namespace re::face_pose::pose {
 
 bool face_pose::pose::OpenCVFacePose::Init(cv::Size image_size) {
   try{
+    LOG(INFO) << "Setting up detector with model: " << model_path_;
     detector_ = cv::FaceDetectorYN::create(model_path_,"",cv::Size(640,640), 0.9,0.3,200);
     if( detector_.empty()) return false;
     detector_->setInputSize(image_size);

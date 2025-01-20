@@ -20,6 +20,10 @@ target_compile_options(common_flags INTERFACE $<$<CONFIG:RELEASE>:-march=native 
 find_package(glog 0.7.1 REQUIRED)
 link_libraries(glog::glog)
 
+# OpenCV
+#set(OCV_PATH /home/pkyle/LibConstruction/opencv/install)
+#find_package(OpenCV 4.11 REQUIRED PATHS ${OCV_PATH} NO_DEFAULT_PATH)
+
 # Camera
 add_subdirectory(camera)
 target_link_libraries(Camera PRIVATE common_flags)
@@ -38,4 +42,4 @@ add_subdirectory(process)
 target_link_libraries(FacePoseProcess PRIVATE common_flags)
 
 add_executable(face_pose main.cpp)
-target_link_libraries( face_pose  PRIVATE FacePoseProcess)
+target_link_libraries( face_pose  PUBLIC FacePoseProcess)
