@@ -27,7 +27,7 @@ class OpenCVFacePose final : public BaseFacePose{
 
  private:
   const std::string model_path_ = "/home/pkyle/reflective_encounters/face_pose/pose_estimation"
-                                  "/face_detection_yunet_2023mar.onnx";
+                                  "/face_detection_yunet_2023mar_int8bq.onnx";
   cv::Ptr<cv::FaceDetectorYN> detector_;
 
 };

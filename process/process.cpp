@@ -20,7 +20,7 @@ Process::~Process(){
 int Process::Run() {
   // Initialize
   camera::CamSettings settings;
-  settings.frame_width = 720;
+  settings.frame_width = 640;
   settings.frame_height = 480;
   if( ! camera_->Connect(settings)) {
     LOG(ERROR) << "Failed To Initialized Camera";
