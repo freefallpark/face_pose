@@ -20,6 +20,9 @@ target_compile_options(common_flags INTERFACE $<$<CONFIG:RELEASE>:-march=native 
 find_package(glog 0.7.1 REQUIRED)
 link_libraries(glog::glog)
 
+# Camera
+add_subdirectory(camera)
+
 # Pose Estimation
 add_subdirectory(pose_estimation)
 target_link_libraries(FacePose PRIVATE common_flags)

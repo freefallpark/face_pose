@@ -5,7 +5,7 @@
 - depthai - camera handling and image processing (luxonis)
 
 # Inputs:
-- Camera Frames
+- BaseCamera Frames
 - Transform from world frame to camera frame
 
 # Outputs:

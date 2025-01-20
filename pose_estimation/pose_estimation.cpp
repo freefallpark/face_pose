@@ -16,7 +16,7 @@ static constexpr int kRgbWidth = 640;
 static constexpr int kRgbHeight = 480;
 
 
-PoseEstimation::PoseEstimation() : stop_(false), pipeline_(), device_(){}
+PoseEstimation::PoseEstimation() : stop_(false){}
 PoseEstimation::~PoseEstimation() {
   Stop();
   if(pose_thread_.joinable()){
@@ -24,108 +24,12 @@ PoseEstimation::~PoseEstimation() {
   }
 }
 void PoseEstimation::Init(){
-  // Create Neural Network Node
-  nn_ = pipeline_.create<dai::node::NeuralNetwork>();
-  dai::OpenVINO::Blob blob("face_detection_yunet_160x120.blob");
-  nn_->setBlob(blob);
-  nn_->setNumInferenceThreads(2);
-  nn_->input.setBlocking(false);
-
-  // Create Camera Node and set it up:
-  cam_ = pipeline_.create<dai::node::ColorCamera>();
-  cam_->setBoardSocket(dai::CameraBoardSocket::CAM_A);
-  cam_->setPreviewSize(kRgbWidth, kRgbHeight);
-  cam_->setInterleaved(false);
-  cam_->setFps(60);
-  cam_->setResolution(dai::ColorCameraProperties::SensorResolution::THE_1080_P);
-
-  // Create NN Image Manip Node:
-  manip_nn_ = pipeline_.create<dai::node::ImageManip>();
-  manip_nn_->initialConfig.setResize(kNnWidth, kNnHeight);
-  manip_nn_->initialConfig.setFrameType(dai::RawImgFrame::Type::BGR888p);
-
-  // Create outputs
-  xout_ = pipeline_.create<dai::node::XLinkOut>();
-  xout_->setStreamName("rgb");
-  xout_nn_ = pipeline_.create<dai::node::XLinkOut>();
-  xout_nn_->setStreamName("nn");
-
-  // Link Camera Output to manip and xout
-  cam_->preview.link(manip_nn_->inputImage);
-  cam_->preview.link(xout_->input);
-
-  // Link manip outut to nn input
-  manip_nn_->out.link(nn_->input);
-  nn_->out.link(xout_nn_->input);
-
-  // Connect to device
-  LOG(INFO) << "Attempting to Create Device on Pipeline";
-  device_ = std::make_shared<dai::Device>(pipeline_);
-  LOG(INFO) << "Usb Speed: " << device_->getUsbSpeed();
-
-  // Bootloader Version
-  if(device_->getBootloaderVersion()){
-    LOG(INFO) << "Bootloader Version: " << device_->getBootloaderVersion()->toString();
-  }
-
-  // Device Name
-  LOG(INFO) << "Device Name: " << device_->getDeviceName() << " Product Name: " << device_->getProductName();
-
-  // Output Queue, used to get rgb frames
-  q_cam_ = device_->getOutputQueue("rgb", 4, false);
-  q_nn_ = device_->getOutputQueue("nn", 4, false);
+  camera_ = std::make_unique<re::camera::LuxonisCamera>();
 
 }
 void PoseEstimation::DisplayVideo() {
-  cv::namedWindow("rgb");
-  while( ! stop_.load()){
-    // Wait for Camera Frame
-    auto in_rgb = q_cam_->get<dai::ImgFrame>();
-    auto frame = in_rgb->getCvFrame();
-
-    // Try to get NN output
-    auto in_det = q_nn_->tryGet<dai::NNData>();
-
-    // Parse output
-    std::vector<float> conf, iou, loc;
-    cv::Mat conf_mat, iou_mat, loc_mat, detected_faces;
-    if(in_det != nullptr){
-      conf = in_det->getLayerFp16("conf");
-      iou = in_det->getLayerFp16("iou");
-      loc = in_det->getLayerFp16("loc");
-      conf_mat = cv::Mat(1076,2, CV_32F, conf.data());
-      iou_mat = cv::Mat(1076,1, CV_32F, iou.data());
-      loc_mat = cv::Mat(1076,14, CV_32F, loc.data());
-
-      // Decode
-      auto pb = PriorBox(cv::Size2i(kNnWidth,kNnHeight),
-                         cv::Size2i(kRgbWidth, kRgbHeight));
-      auto faces = pb.decode(loc_mat, conf_mat, iou_mat, 0.5);
-
-      DrawFaces(frame,faces);
-
-    }
-
-    cv::imshow("rgb", frame);
-    cv::waitKey(1);
-  }
-  cv::destroyAllWindows();
 }
 bool PoseEstimation::Run() {
-  // Initialize
-  try{
-    Init();
-  }
-  catch(std::runtime_error& e){
-    LOG(WARNING) << "Exception Caught during Initialization: " << e.what();
-    Stop();
-    return false;
-  }
-
-  // Start Video Display thread
-  pose_thread_ = std::thread(&PoseEstimation::DisplayVideo, this);
-
-  LOG(INFO) << "Successfully started Video Display";
 
   return true;
 }
