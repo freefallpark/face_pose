@@ -11,9 +11,9 @@
 
 
 namespace re::face_pose {
-Process::Process() : stop_(false),
+Process::Process(std::string model_path) : stop_(false),
                      camera_(std::make_unique<camera::LuxonisCamera>()),
-                     face_pose_estimator_(std::make_unique<pose::OpenCVFacePose>()){}
+                     face_pose_estimator_(std::make_unique<pose::OpenCVFacePose>(std::move(model_path))){}
 Process::~Process(){
   stop_ = true;
 }

@@ -17,7 +17,7 @@ namespace re::face_pose::pose {
 
 class OpenCVFacePose final : public BaseFacePose{
  public:
-  OpenCVFacePose() = default;
+  explicit OpenCVFacePose(std::string model_path);
   OpenCVFacePose(OpenCVFacePose&) = delete;
   OpenCVFacePose& operator=(OpenCVFacePose&) = delete;
   ~OpenCVFacePose() override = default;
@@ -26,8 +26,7 @@ class OpenCVFacePose final : public BaseFacePose{
   cv::Mat LookForFaces(const cv::Mat &frame, const double &min_confidence) override;
 
  private:
-  const std::string model_path_ = "/home/pkyle/reflective_encounters/face_pose/pose_estimation"
-                                  "/face_detection_yunet_2023mar_int8bq.onnx";
+  const std::string model_path_;
   cv::Ptr<cv::FaceDetectorYN> detector_;
 
 };

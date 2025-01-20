@@ -12,6 +12,7 @@
 #include "glog/logging.h"
 
 namespace re::face_pose::pose {
+OpenCVFacePose::OpenCVFacePose(std::string model_path) : model_path_(std::move(model_path)){}
 
 bool face_pose::pose::OpenCVFacePose::Init(cv::Size image_size) {
   try{
@@ -38,5 +39,6 @@ cv::Mat face_pose::pose::OpenCVFacePose::LookForFaces(const cv::Mat &frame, cons
   }
   return faces_mat;
 }
+
 
 }  // namespace re::face_pose::pose

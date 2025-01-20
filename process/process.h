@@ -16,7 +16,7 @@ namespace re::face_pose {
 
 class Process {
  public:
-  Process();
+  explicit Process(std::string model_path);
   ~Process();
 
   int Run();
