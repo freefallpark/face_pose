@@ -21,8 +21,7 @@ find_package(glog 0.7.1 REQUIRED)
 link_libraries(glog::glog)
 
 # OpenCV
-#set(OCV_PATH /home/pkyle/LibConstruction/opencv/install)
-#find_package(OpenCV 4.11 REQUIRED PATHS ${OCV_PATH} NO_DEFAULT_PATH)
+find_package(OpenCV 4.11 REQUIRED)
 
 # Camera
 add_subdirectory(camera)
