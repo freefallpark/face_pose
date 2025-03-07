@@ -16,7 +16,7 @@ namespace re::face_pose {
 
 class Process {
  public:
-  explicit Process(std::string model_path);
+  explicit Process(const std::string &model_path);
   ~Process();
 
   int Run();
@@ -28,10 +28,12 @@ class Process {
   void DisplayFrame( const std::string &name, const cv::Mat& frame);
   // Process Related Members
   std::atomic<bool> stop_;
-  // Camera
-  std::unique_ptr<camera::BaseCamera> camera_;
+  // Cameras
+  std::unique_ptr<camera::BaseCamera> luxonis_camera_;
+  std::unique_ptr<camera::BaseCamera> web_camera_;
   // Face Pose Estimator
-  std::unique_ptr<pose::BaseFacePose> face_pose_estimator_;
+  std::unique_ptr<pose::BaseFacePose> luxonis_estimator_;
+  std::unique_ptr<pose::BaseFacePose> web_estimator_;
 };
 
 }  // namespace re::face_pose

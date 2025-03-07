@@ -8,47 +8,68 @@
 
 #include "camera/luxonis_camera.h"
 #include "pose_estimation/opencv_face_pose.h"
+#include "camera/web_camera.h"
 
 
 namespace re::face_pose {
-Process::Process(std::string model_path) : stop_(false),
-                     camera_(std::make_unique<camera::LuxonisCamera>()),
-                     face_pose_estimator_(std::make_unique<pose::OpenCVFacePose>(std::move(model_path))){}
+Process::Process(const std::string &model_path)
+    : stop_(false),
+      luxonis_camera_(std::make_unique<camera::LuxonisCamera>()),
+      web_camera_(std::make_unique<camera::WebCamera>()),
+      luxonis_estimator_(std::make_unique<pose::OpenCVFacePose>(model_path)),
+      web_estimator_(std::make_unique<pose::OpenCVFacePose>(model_path)){}
 Process::~Process(){
   stop_ = true;
 }
 int Process::Run() {
-  // Initialize
+  // Initialize Cameras
   camera::CamSettings settings;
   settings.frame_width = 640;
   settings.frame_height = 480;
-  if( ! camera_->Connect(settings)) {
-    LOG(ERROR) << "Failed To Initialized Camera";
+  if( ! luxonis_camera_->Connect(settings)) {
+    LOG(ERROR) << "Failed To Initialized Luxonis Camera";
     Shutdown();
     return 1;
   }
-  if( ! face_pose_estimator_->Init(camera_->GetFrame().size())) {
-    LOG(ERROR) << "Failed To Initialized Face Pose Estimator";
+  if( ! web_camera_->Connect(settings)){
+    LOG(ERROR) << "Failed To Initialized Web Camera";
+    Shutdown();
+    return 1;
+  }
+
+  // Initialize Estimators
+  if( ! luxonis_estimator_->Init(luxonis_camera_->GetFrame().size())) {
+    LOG(ERROR) << "Failed To Initialized Luxonis Estimator";
+    Shutdown();
+    return 1;
+  }
+  if( ! web_estimator_->Init(web_camera_->GetFrame().size())) {
+    LOG(ERROR) << "Failed To Initialized Web Estimator";
     Shutdown();
     return 1;
   }
 
   // Main Loop
   while(!stop_){
-    // Get Frame
-    auto frame = camera_->GetFrame();
+    // Get Frames
+    auto luxonis_frame = luxonis_camera_->GetFrame();
+    auto web_frame = web_camera_->GetFrame();
 
     // Look For Faces
-    auto faces = face_pose_estimator_->LookForFaces(frame, 0.75);
+    auto luxonis_faces = luxonis_estimator_->LookForFaces(luxonis_frame, 0.75);
+    auto web_faces = web_estimator_->LookForFaces(web_frame, 0.75);
 
     //Draw Faces
-    DrawFaces(frame, faces);
+    DrawFaces(luxonis_frame, luxonis_faces);
+    DrawFaces(web_frame, web_faces);
 
     // Draw Target
-    DrawFaceTargets(frame, faces);
+    DrawFaceTargets(luxonis_frame, luxonis_faces);
+    DrawFaceTargets(web_frame, web_faces);
 
     // Display Frame
-    DisplayFrame("debug", frame);
+    DisplayFrame("luxonis", luxonis_frame);
+    DisplayFrame("web", web_frame);
   }
 
   // Shutdown
