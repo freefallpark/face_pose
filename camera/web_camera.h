@@ -19,7 +19,8 @@ class WebCamera final : public BaseCamera{
 
  public:
  private:
-  cv::VideoCapture cap;
+  cv::VideoCapture cap_;
+  cv::Size frame_size_;
 };
 
 } // camera
