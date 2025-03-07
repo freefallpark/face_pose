@@ -24,6 +24,7 @@ class Process {
  private:
   void Shutdown();
   static void DrawFaces( const cv::Mat& frame, const cv::Mat &faces);
+  static void DrawFaceTargets( const cv::Mat &frame, const cv::Mat &faces);
   void DisplayFrame( const std::string &name, const cv::Mat& frame);
   // Process Related Members
   std::atomic<bool> stop_;

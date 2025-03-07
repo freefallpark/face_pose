@@ -44,10 +44,11 @@ int Process::Run() {
     //Draw Faces
     DrawFaces(frame, faces);
 
+    // Draw Target
+    DrawFaceTargets(frame, faces);
 
     // Display Frame
     DisplayFrame("debug", frame);
-
   }
 
   // Shutdown
@@ -80,6 +81,19 @@ void Process::DrawFaces(const cv::Mat &frame, const cv::Mat &faces) {
     // Put score
     cv::putText(frame, cv::format("%.4f", faces.at<float>(i, 14)), cv::Point2i(int(faces.at<float>(i, 0)), int(faces.at<float>(i, 1))+15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0));
   }
+}
+void Process::DrawFaceTargets([[maybe_unused]] const cv::Mat &frame,[[maybe_unused]] const cv::Mat &faces){
+  //Target Right eye is at faces.at<float>(i, 4), left eye at (i,6)
+  std::vector<cv::Point2f> targets;
+  for(int i = 0; i< faces.rows; i++){
+    //Left eye coords:
+    cv::Point2f left_eye = cv::Point2f(faces.at<float>(i,4), faces.at<float>(i,5));
+    cv::Point2f right_eye = cv::Point2f(faces.at<float>(i,6), faces.at<float>(i,7));
+    cv::Point2f target = (left_eye + right_eye)*0.5f;
+    cv::drawMarker(frame, target, cv::Scalar(0, 0, 255), cv::MARKER_CROSS, 10, 2);
+    std::cout << "\r target: " << target << std::flush;
+  }
+
 }
 
 
