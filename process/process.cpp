@@ -54,10 +54,19 @@ int Process::Run() {
     // Get Frames
     auto luxonis_frame = luxonis_camera_->GetFrame();
     auto web_frame = web_camera_->GetFrame();
+    
+    // TODO(pkyle): Rectify images (if not already).
 
     // Look For Faces
     auto luxonis_faces = luxonis_estimator_->LookForFaces(luxonis_frame, 0.75);
     auto web_faces = web_estimator_->LookForFaces(web_frame, 0.75);
+
+    // TODO(pkyle): Match Faces between frames.
+    
+    // TODO(pkyle): calculate 3d position of each matched face.
+
+    // TODO(pkyle): Track Faces (check each matched face position against predicted positions
+    //  (Kalman + Hungarian Assignment to compare predicted vs current positions)).
 
     //Draw Faces
     DrawFaces(luxonis_frame, luxonis_faces);
